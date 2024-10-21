@@ -2,26 +2,48 @@
 import React, { useEffect, useState } from "react";
 import SingleChoiceQuestion from "../../survey-content/_component/SingleChoiceQuestion";
 import MultipleChoiceQuestion from "@/app/survey-content/_component/MultipleChoiceQuestion";
-import { useQuestions } from "../utils/hook";
-import { Button, Flex } from "antd";
+import { Button, Flex, message } from "antd";
 import config from "../../../../public/config";
 import { useRouter } from "next/navigation";
+import { isTokenValid, clearToken } from "../utils/auth";
+import { fetchQuestions } from "../utils/api";
 
 export default function Page() {
   const router = useRouter();
-  const api = `${config.baseURL}/exam-pools/1/questions/`;
-  const token =
-    "eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOiI3NGFjZmM3NmI5MmQ0MGYwYWM1YjViYTY5OGVmOGY3OSIsInN1YiI6IjEiLCJpc3MiOiJzZyIsImlhdCI6MTcyODMxNTE2OSwiZXhwIjoxNzI5NTI0NzY5fQ.tGL99cLiQ9YeqpsHKCUWA3nrhzD_oJ4Bufl79kAh64c";
-  const { questions, currentIndex, loadQuestions, nextQuestion, prevQuestion } =
-    useQuestions(api, token);
-
-  useEffect(() => {
-    loadQuestions();
-  }, []);
-
+  const api = `${config.baseURL}api/exam-pools/1/questions/`;
   const [answers, setAnswers] = useState({});
+  const [questions, setQuestions] = useState([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [loading, setLoading] = useState(true);
 
-  const handleAnswerChange = (questionId, answer, isMulti = false) => {
+  // 检查 token 状态并处理跳转逻辑
+  useEffect(() => {
+    const token = localStorage.getItem("auth_token");
+
+    if (!isTokenValid()) {
+      message.warning("Session expired. Please log in again.");
+      clearToken(); // 清除无效 token
+      router.push("/user/login"); // 跳转到登录页
+    } else {
+      loadQuestions(token); // 只有 token 有效时加载问题
+    }
+  }, [router]);
+
+  // 加载问题函数
+  const loadQuestions = async (token) => {
+    setLoading(true); // 开始加载
+    try {
+      const data = await fetchQuestions(api, token);
+      // console.log(data);
+      setQuestions(data); // 假设API返回的数据结构包含 questions
+    } catch (error) {
+      console.error("Failed to load questions:", error);
+    } finally {
+      setLoading(false); // 加载结束
+    }
+  };
+
+  const handleAnswerChange = (questionId, answer) => {
     setAnswers((prev) => ({
       ...prev,
       [questionId]: answer,
@@ -58,7 +80,6 @@ export default function Page() {
     console.log(`Correct answers: ${correctCount}`);
     console.log(`Accuracy: ${accuracy.toFixed(2)}%`);
 
-    // 跳转到结果页面并传递正确率
     router.push(`/question-bank/CSA/result?result=${accuracy}`, {
       query: { accuracy: accuracy.toFixed(2) },
     });
@@ -74,8 +95,6 @@ export default function Page() {
     }
 
     const currentQuestion = questions[currentIndex];
-    if (!currentIndex && currentIndex !== 0) return null;
-
     const currentAnswer =
       answers[currentQuestion.questionId] ||
       (currentQuestion.type === "multiple" ? [] : null);
@@ -120,13 +139,15 @@ export default function Page() {
 
   return (
     <div>
-      {questions.length > 0 ? (
+      {loading ? (
+        <p>Loading questions...</p>
+      ) : questions.length > 0 ? (
         <>
           <Flex gap="small" justify="center" align="center" wrap>
             <Button
               type="primary"
               disabled={currentIndex === 0}
-              onClick={prevQuestion}
+              onClick={() => setCurrentIndex(currentIndex - 1)}
             >
               Previous
             </Button>
@@ -134,7 +155,7 @@ export default function Page() {
             <Button
               type="primary"
               disabled={currentIndex === questions.length - 1}
-              onClick={nextQuestion}
+              onClick={() => setCurrentIndex(currentIndex + 1)}
             >
               Next
             </Button>
@@ -150,7 +171,7 @@ export default function Page() {
           </Flex>
         </>
       ) : (
-        <p>Loading questions...</p>
+        <p>No questions available.</p>
       )}
     </div>
   );
