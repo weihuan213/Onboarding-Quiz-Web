@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import SingleChoiceQuestion from "../../survey-content/_component/SingleChoiceQuestion";
 import MultipleChoiceQuestion from "@/app/survey-content/_component/MultipleChoiceQuestion";
-import { Button, Flex, message } from "antd";
+import { Button, message } from "antd";
 import config from "../../../../public/config";
 import { useRouter } from "next/navigation";
 import { isTokenValid, clearToken } from "../utils/auth";
@@ -16,30 +16,26 @@ export default function Page() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  // 检查 token 状态并处理跳转逻辑
   useEffect(() => {
     const token = localStorage.getItem("auth_token");
-
     if (!isTokenValid()) {
       message.warning("Session expired. Please log in again.");
-      clearToken(); // 清除无效 token
-      router.push("/user/login"); // 跳转到登录页
+      clearToken();
+      router.push("/user/login");
     } else {
-      loadQuestions(token); // 只有 token 有效时加载问题
+      loadQuestions(token);
     }
   }, [router]);
 
-  // 加载问题函数
   const loadQuestions = async (token) => {
-    setLoading(true); // 开始加载
+    setLoading(true);
     try {
       const data = await fetchQuestions(api, token);
-      // console.log(data);
-      setQuestions(data); // 假设API返回的数据结构包含 questions
+      setQuestions(data);
     } catch (error) {
       console.error("Failed to load questions:", error);
     } finally {
-      setLoading(false); // 加载结束
+      setLoading(false);
     }
   };
 
@@ -52,7 +48,6 @@ export default function Page() {
 
   const handleSubmit = () => {
     let correctCount = 0;
-
     questions.forEach((question) => {
       const userAnswer = answers[question.questionId];
       if (question.type === "single") {
@@ -77,22 +72,11 @@ export default function Page() {
     });
 
     const accuracy = (correctCount / questions.length) * 100;
-    console.log(`Correct answers: ${correctCount}`);
-    console.log(`Accuracy: ${accuracy.toFixed(2)}%`);
-
-    router.push(`/question-bank/CSA/result?result=${accuracy}`, {
-      query: { accuracy: accuracy.toFixed(2) },
-    });
+    router.push(`/question-bank/CSA/result?result=${accuracy.toFixed(2)}`);
   };
 
   const renderQuestion = () => {
-    if (
-      questions.length === 0 ||
-      currentIndex == null ||
-      !questions[currentIndex]
-    ) {
-      return null;
-    }
+    if (!questions[currentIndex]) return null;
 
     const currentQuestion = questions[currentIndex];
     const currentAnswer =
@@ -117,7 +101,7 @@ export default function Page() {
             question={currentQuestion.content}
             options={currentQuestion.options}
             onChange={(list) =>
-              handleAnswerChange(currentQuestion.questionId, list, true)
+              handleAnswerChange(currentQuestion.questionId, list)
             }
             selectedAnswers={currentAnswer}
           />
@@ -138,37 +122,72 @@ export default function Page() {
   });
 
   return (
-    <div>
+    <div style={{ maxWidth: "800px", margin: "0 auto", padding: "20px" }}>
       {loading ? (
         <p>Loading questions...</p>
       ) : questions.length > 0 ? (
         <>
-          <Flex gap="small" justify="center" align="center" wrap>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "20px",
+            }}
+          >
             <Button
               type="primary"
               disabled={currentIndex === 0}
               onClick={() => setCurrentIndex(currentIndex - 1)}
+              style={{ marginRight: "20px" }} // Add space between Previous button and question
             >
               Previous
             </Button>
-            {renderQuestion()}
+
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center", // Center question and submit vertically
+                marginBottom: "20px",
+                flex: 1, // Allow the question area to grow and fill space
+              }}
+            >
+              <div
+                style={{
+                  width: "100%", // Take full width
+                  border: "1px solid #ddd",
+                  borderRadius: "8px",
+                  padding: "20px",
+                  marginBottom: "10px",
+                  wordBreak: "break-word",
+                  overflowY: "auto", // Enable vertical scrolling
+                  maxHeight: "1000px", // Set a max height for the scrollable area
+                  display: "flex", // Use flex to control inner content
+                }}
+              >
+                {renderQuestion()}
+              </div>
+              <Button
+                type="primary"
+                block
+                disabled={!allAnswered}
+                onClick={handleSubmit}
+                style={{ width: "100%" }} // Ensure submit button is the same width
+              >
+                Submit
+              </Button>
+            </div>
+
             <Button
               type="primary"
               disabled={currentIndex === questions.length - 1}
               onClick={() => setCurrentIndex(currentIndex + 1)}
+              style={{ marginLeft: "20px" }} // Add space between question and Next button
             >
               Next
             </Button>
-          </Flex>
-          <Flex justify="end" style={{ marginTop: 20, marginRight: "30%" }}>
-            <Button
-              type="primary"
-              disabled={!allAnswered}
-              onClick={handleSubmit}
-            >
-              Submit
-            </Button>
-          </Flex>
+          </div>
         </>
       ) : (
         <p>No questions available.</p>
