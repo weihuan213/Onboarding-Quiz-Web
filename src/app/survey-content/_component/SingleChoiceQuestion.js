@@ -1,10 +1,18 @@
 import { Card, Form, Button, Radio, Space } from "antd";
 import React from "react";
 
-function SingleChoiceQuestion({ question, options, onChange, selectedAnswer }) {
+export default function SingleChoiceQuestion({
+  question,
+  options,
+  onChange,
+  selectedAnswer,
+}) {
   return (
     <div className="Survey-Page pt-20">
-      <Card title={question} className="">
+      <Card
+        title={<div className="question-title">{question}</div>}
+        className="question-card"
+      >
         <Form>
           <Form.Item>
             <Radio.Group onChange={onChange} value={selectedAnswer}>
@@ -19,8 +27,19 @@ function SingleChoiceQuestion({ question, options, onChange, selectedAnswer }) {
           </Form.Item>
         </Form>
       </Card>
+
+      <style jsx>{`
+        .question-title {
+          word-break: break-word;
+          white-space: normal; /* 允许正常的换行 */
+        }
+
+        .question-card {
+          width: 100%;
+          max-width: 1000px;
+          margin: 0 auto;
+        }
+      `}</style>
     </div>
   );
 }
-
-export default SingleChoiceQuestion;

@@ -1,54 +1,68 @@
 "use client";
-import { Inter } from "next/font/google";
-import "./globals.css";
-import React, { useEffect, useState } from "react";
-import {
-  LaptopOutlined,
-  NotificationOutlined,
-  UserOutlined,
-} from "@ant-design/icons";
-import { Layout, Menu, Breadcrumb, theme } from "antd";
+import React, { useState } from "react";
+import { LaptopOutlined, UserOutlined } from "@ant-design/icons";
+import { Layout, Menu, theme } from "antd";
 import Link from "next/link";
 import AntdContainer from "./survey-content/_component/AntdContainer";
 
 const { Header, Content, Sider, Footer } = Layout;
 
 export default function RootLayout({ children }) {
-  const items1 = ["QuizHub", "2", "3"].map((value, key) => ({
+  const items1 = ["QuizHub"].map((value, key) => ({
     key,
     label: value,
   }));
-  const appQuiz = ["ServiceNow Exam", "Onboarding", "xxx"];
-  const exams = ["CSA", "CSD"];
-  const items2 = [UserOutlined, LaptopOutlined, NotificationOutlined].map(
-    (icon, index) => {
-      const key = String(index + 1);
-      return {
-        key: `sub${key}`,
-        icon: React.createElement(icon),
-        label: appQuiz[index],
-        children: new Array(exams.length).fill(null).map((_, j) => {
-          const subKey = index * 4 + j + 1;
-          return {
-            key: subKey,
-            label: <Link href={`/question-bank/${exams[j]}`}>{exams[j]}</Link>,
-          };
-        }),
-      };
-    }
-  );
+
+  const appQuiz = [
+    { name: "Quiz", categories: ["Onboarding Quiz"] },
+    { name: "Practice", categories: ["CSA"] },
+  ];
+
+  const items2 = [UserOutlined, LaptopOutlined].map((icon, index) => {
+    const { name, categories } = appQuiz[index];
+    const key = `sub${index + 1}`;
+
+    return {
+      key,
+      icon: React.createElement(icon),
+      label: name,
+      children: categories.map((category, j) => {
+        const linkRef =
+          index === 0 && j === 0
+            ? `/question-bank/CSA`
+            : `/practice/${category}`;
+        return {
+          key: `${key}-${j + 1}`,
+          label: <Link href={linkRef}>{category}</Link>,
+        };
+      }),
+    };
+  });
+
+  const defaultOpenKeys = items2.map((item) => item.key);
+
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
+
+  // State to keep track of the selected keys
+  const [selectedKeys, setSelectedKeys] = useState(["1-1"]); // Set initial selected key (Onboarding Quiz)
+
+  const handleMenuClick = (e) => {
+    console.log(e.key);
+    setSelectedKeys([e.key]);
+  };
+
   return (
     <html lang="en">
-      <body className="m-0 large-text">
+      <body>
         <AntdContainer>
-          <Layout style={{ height: "100vh" }}>
+          <Layout style={{ minHeight: "100vh", overflow: "hidden" }}>
             <Header
               style={{
                 display: "flex",
                 alignItems: "center",
+                backgroundColor: "#001529",
               }}
             >
               <div className="demo-logo" />
@@ -65,41 +79,29 @@ export default function RootLayout({ children }) {
             </Header>
 
             <Layout style={{ flex: 1 }}>
-              <Sider
-                width={200}
-                style={{
-                  background: colorBgContainer,
-                }}
-              >
+              <Sider width={250} style={{ background: colorBgContainer }}>
                 <Menu
                   mode="inline"
                   defaultSelectedKeys={["1"]}
-                  defaultOpenKeys={["sub1"]}
+                  defaultOpenKeys={defaultOpenKeys}
+                  selectedKeys={selectedKeys} // Pass the selectedKeys state
+                  onClick={handleMenuClick} // Handle menu click
+                  items={items2}
                   style={{
                     height: "100%",
                     borderRight: 0,
                   }}
-                  items={items2}
+                  className="sider-menu"
                 />
               </Sider>
               <Layout style={{ padding: "0 24px 24px", flex: 1 }}>
-                {/* <Breadcrumb
-                  style={{
-                    margin: "16px 0",
-                  }}
-                >
-                  <Breadcrumb.Item>Home</Breadcrumb.Item>
-                  <Breadcrumb.Item>List</Breadcrumb.Item>
-                  <Breadcrumb.Item>App</Breadcrumb.Item>
-                </Breadcrumb> */}
                 <Content
                   style={{
-                    padding: 24,
+                    padding: 10,
                     margin: 0,
                     flex: 1,
                     background: colorBgContainer,
                     borderRadius: borderRadiusLG,
-                    overflow: "auto",
                     display: "flex",
                     justifyContent: "center",
                     alignItems: "center",
@@ -120,15 +122,38 @@ export default function RootLayout({ children }) {
                 </Content>
               </Layout>
             </Layout>
+
             <Footer
               style={{
                 textAlign: "center",
+                backgroundColor: colorBgContainer,
               }}
             >
               ©{new Date().getFullYear()} Created by HCSM
             </Footer>
           </Layout>
         </AntdContainer>
+
+        <style jsx global>{`
+          * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+          }
+
+          html,
+          body {
+            height: 100%;
+            overflow: hidden;
+          }
+
+          .sider-menu .ant-menu-item,
+          .sider-menu .ant-menu-submenu-title {
+            white-space: normal;
+            word-break: break-word;
+            overflow: visible;
+          }
+        `}</style>
       </body>
     </html>
   );
