@@ -1,12 +1,12 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import SingleChoiceQuestion from "../../survey-content/_component/SingleChoiceQuestion";
-import MultipleChoiceQuestion from "@/app/survey-content/_component/MultipleChoiceQuestion";
 import { Button, message } from "antd";
 import config from "../../../../public/config";
 import { useRouter } from "next/navigation";
-import { isTokenValid, clearToken } from "../utils/auth";
-import { fetchQuestions } from "../utils/api";
+import QuestionRender from "@/app/_component/questionForm/questionRender";
+import { authValidation } from "@/app/_utils/user/authValidation";
+import { loadQuestions } from "@/app/_utils/question/loadQuestions";
+import { calculateScore } from "@/app/_utils/question/calculateScore";
 
 export default function Page() {
   const router = useRouter();
@@ -16,28 +16,15 @@ export default function Page() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
 
+  // Verify whether the token has expired.
   useEffect(() => {
-    const token = localStorage.getItem("auth_token");
-    if (!isTokenValid()) {
-      message.warning("Session expired. Please log in again.");
-      clearToken();
+    const token = authValidation();
+    if (!token) {
       router.push("/user/login");
     } else {
-      loadQuestions(token);
+      loadQuestions(api, token, setQuestions, setLoading);
     }
   }, [router]);
-
-  const loadQuestions = async (token) => {
-    setLoading(true);
-    try {
-      const data = await fetchQuestions(api, token);
-      setQuestions(data);
-    } catch (error) {
-      console.error("Failed to load questions:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleAnswerChange = (questionId, answer) => {
     setAnswers((prev) => ({
@@ -47,31 +34,7 @@ export default function Page() {
   };
 
   const handleSubmit = () => {
-    let correctCount = 0;
-    questions.forEach((question) => {
-      const userAnswer = answers[question.questionId];
-      if (question.type === "single") {
-        const correctOption = question.options.find(
-          (option) => option.isCorrect
-        );
-        if (correctOption && correctOption.optionId === userAnswer) {
-          correctCount++;
-        }
-      } else if (question.type === "multiple") {
-        const correctOptions = question.options
-          .filter((option) => option.isCorrect)
-          .map((option) => option.optionId);
-        if (
-          Array.isArray(userAnswer) &&
-          userAnswer.length === correctOptions.length &&
-          userAnswer.every((answer) => correctOptions.includes(answer))
-        ) {
-          correctCount++;
-        }
-      }
-    });
-
-    const accuracy = (correctCount / questions.length) * 100;
+    const accuracy = calculateScore(questions, answers);
     router.push(`/question-bank/CSA/result?result=${accuracy.toFixed(2)}`);
   };
 
@@ -83,32 +46,14 @@ export default function Page() {
       answers[currentQuestion.questionId] ||
       (currentQuestion.type === "multiple" ? [] : null);
 
-    switch (currentQuestion.type) {
-      case "single":
-        return (
-          <SingleChoiceQuestion
-            question={currentQuestion.content}
-            options={currentQuestion.options}
-            onChange={(e) =>
-              handleAnswerChange(currentQuestion.questionId, e.target.value)
-            }
-            selectedAnswer={currentAnswer}
-          />
-        );
-      case "multiple":
-        return (
-          <MultipleChoiceQuestion
-            question={currentQuestion.content}
-            options={currentQuestion.options}
-            onChange={(list) =>
-              handleAnswerChange(currentQuestion.questionId, list)
-            }
-            selectedAnswers={currentAnswer}
-          />
-        );
-      default:
-        return <p>Unknown question type</p>;
-    }
+    return (
+      <QuestionRender
+        currentIndex={currentIndex}
+        question={currentQuestion}
+        selectedAnswer={currentAnswer}
+        onChange={handleAnswerChange}
+      ></QuestionRender>
+    );
   };
 
   const allAnswered = questions.every((question) => {
