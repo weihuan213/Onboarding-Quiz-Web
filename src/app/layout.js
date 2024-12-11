@@ -45,19 +45,27 @@ export default function RootLayout({ children }) {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
 
-  // State to keep track of the selected keys
-  const [selectedKeys, setSelectedKeys] = useState(["1-1"]); // Set initial selected key (Onboarding Quiz)
+  const [selectedKeys, setSelectedKeys] = useState(["1-1"]);
 
   const handleMenuClick = (e) => {
-    console.log(e.key);
     setSelectedKeys([e.key]);
   };
 
   return (
     <html lang="en">
-      <body>
+      <body
+        style={{
+          margin: 0,
+          padding: 0,
+          height: "100vh",
+          overflowY: "auto",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
         <AntdContainer>
           <Layout style={{ minHeight: "100vh", overflow: "hidden" }}>
+            {/* 顶部导航栏 */}
             <Header
               style={{
                 display: "flex",
@@ -79,13 +87,14 @@ export default function RootLayout({ children }) {
             </Header>
 
             <Layout style={{ flex: 1 }}>
+              {/* 左侧菜单栏 */}
               <Sider width={250} style={{ background: colorBgContainer }}>
                 <Menu
                   mode="inline"
                   defaultSelectedKeys={["1"]}
                   defaultOpenKeys={defaultOpenKeys}
-                  selectedKeys={selectedKeys} // Pass the selectedKeys state
-                  onClick={handleMenuClick} // Handle menu click
+                  selectedKeys={selectedKeys}
+                  onClick={handleMenuClick}
                   items={items2}
                   style={{
                     height: "100%",
@@ -94,6 +103,8 @@ export default function RootLayout({ children }) {
                   className="sider-menu"
                 />
               </Sider>
+
+              {/* 主要内容区域 */}
               <Layout style={{ padding: "0 24px 24px", flex: 1 }}>
                 <Content
                   style={{
@@ -103,19 +114,37 @@ export default function RootLayout({ children }) {
                     background: colorBgContainer,
                     borderRadius: borderRadiusLG,
                     display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
+                    flexDirection: "column",
                   }}
                 >
+                  {/* 固定顶部区域：计时器和进度条 */}
                   <div
-                    className="contentArea"
                     style={{
                       display: "flex",
                       justifyContent: "center",
                       alignItems: "center",
-                      width: "100%",
-                      height: "100%",
+                      paddingBottom: "10px",
+                      borderBottom: "1px solid #ddd",
                     }}
+                  >
+                    {/* Timer and progress bar go here */}
+                  </div>
+
+                  {/* 可滚动的表单区域 */}
+                  <div
+                    style={{
+                      overflowY: "auto",
+                      flex: 1,
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      flexDirection: "column",
+                      padding: "20px",
+                      width: "100%",
+                      fontSize: "clamp(14px, 2vw, 22px)", // 动态字体大小
+                      lineHeight: "1.6", // 增加阅读性
+                    }}
+                    className="form-container"
                   >
                     {children}
                   </div>
@@ -123,6 +152,7 @@ export default function RootLayout({ children }) {
               </Layout>
             </Layout>
 
+            {/* 页脚 */}
             <Footer
               style={{
                 textAlign: "center",
@@ -134,6 +164,7 @@ export default function RootLayout({ children }) {
           </Layout>
         </AntdContainer>
 
+        {/* 全局样式 */}
         <style jsx global>{`
           * {
             margin: 0;
@@ -152,6 +183,10 @@ export default function RootLayout({ children }) {
             white-space: normal;
             word-break: break-word;
             overflow: visible;
+          }
+
+          .form-container {
+            // text-align: center; /* 文字居中对齐 */
           }
         `}</style>
       </body>
