@@ -19,9 +19,13 @@ export default function SingleChoiceQuestion({
           </div>
         }
         className="question-card"
-        style={{ overflow: "visible" }}
+        size="large"
+        style={{ overflow: "visible", classNames: "" }}
       >
-        <Form style={{ overflow: "visible" }}>
+        <Form
+          style={{ overflow: "visible", size: "large" }}
+          className="xl:!w-[1280px] lg:!w-[800px]"
+        >
           <Form.Item>
             <Radio.Group onChange={onChange} value={selectedAnswer}>
               <Space direction="vertical">
@@ -54,6 +58,7 @@ export default function SingleChoiceQuestion({
         .question-card {
           width: 100%;
           max-width: 1000px;
+          width: 800px;
           margin: 0 auto;
         }
         .ant-radio-wrapper {

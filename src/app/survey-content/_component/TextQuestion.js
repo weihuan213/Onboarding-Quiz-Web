@@ -11,7 +11,7 @@ export default function TextQuestion({ question }) {
   };
   return (
     <div className="Survey-Page pt-20">
-      <Card title={question} className="w-4/5 mx-auto">
+      <Card title={question} className="!w-[800px] mx-auto">
         <Form>
           <Form.Item>
             <TextArea

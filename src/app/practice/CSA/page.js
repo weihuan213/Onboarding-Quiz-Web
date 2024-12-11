@@ -1,18 +1,17 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Button, message, Row } from "antd";
+import { Button, Spin } from "antd";
 import config from "../../../../public/config";
 import { useRouter } from "next/navigation";
 import QuestionRender from "@/app/_component/questionForm/questionRender";
 import { authValidation } from "@/app/_utils/user/authValidation";
 import { loadQuestions } from "@/app/_utils/question/loadQuestions";
-import { calculateScore } from "@/app/_utils/question/calculateScore";
 import ProgressIndicator from "@/app/_component/questionForm/ProgressIndicator";
 import useQuestionStore from "@/app/_store/store";
 
 export default function Page() {
   const router = useRouter();
-  const api = `${config.baseURL}api/exam-pools/1/questions/`;
+  const api = `${config.baseURL}api/exam-pools/2/questions/`;
   const [answers, setAnswers] = useState({});
   const [questions, setQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -26,7 +25,13 @@ export default function Page() {
     if (!token) {
       router.push("/user/login");
     } else {
-      loadQuestions(api, token, setQuestions, setLoading);
+      // 开始加载，设置 loading 为 true
+      setLoading(true);
+
+      loadQuestions(api, token, (loadedQuestions) => {
+        setQuestions(loadedQuestions || []); // 加载完成，设置题目
+        setLoading(false); // 完成加载后设置 loading 为 false
+      });
     }
   }, [router]);
 
@@ -106,9 +111,16 @@ export default function Page() {
   };
 
   return (
-    <div style={{ maxWidth: "800px", margin: "0 auto", padding: "20px" }}>
+    <div
+      style={{ margin: "0 auto", padding: "20px" }}
+      className="xl:!w-[1280px]"
+    >
       {loading ? (
-        <p>Loading questions...</p>
+        <div
+          style={{ display: "flex", justifyContent: "center", padding: "20px" }}
+        >
+          <Spin size="large" />
+        </div>
       ) : questions.length > 0 ? (
         <div
           style={{
@@ -135,7 +147,14 @@ export default function Page() {
             <Button
               type="primary"
               disabled={currentIndex === 0}
-              onClick={() => setCurrentIndex(currentIndex - 1)}
+              onClick={() => {
+                console.log(showAnswers);
+                if (showAnswers) {
+                  setShowAnswers(false); // 隐藏答案
+                  console.log(showAnswers);
+                }
+                setCurrentIndex(currentIndex - 1); // 跳转到上一题
+              }}
               style={{ marginRight: "20px" }}
             >
               Previous
@@ -189,7 +208,12 @@ export default function Page() {
             <Button
               type="primary"
               disabled={currentIndex === questions.length - 1}
-              onClick={() => setCurrentIndex(currentIndex + 1)}
+              onClick={() => {
+                if (showAnswers) {
+                  setShowAnswers(false); // 隐藏答案
+                }
+                setCurrentIndex(currentIndex + 1); // 跳转到下一题
+              }}
               style={{ marginLeft: "20px" }}
             >
               Next
