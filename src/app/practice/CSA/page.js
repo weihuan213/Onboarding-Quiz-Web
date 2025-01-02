@@ -8,6 +8,7 @@ import { authValidation } from "@/app/_utils/user/authValidation";
 import { loadQuestions } from "@/app/_utils/question/loadQuestions";
 import ProgressIndicator from "@/app/_component/questionForm/ProgressIndicator";
 import useQuestionStore from "@/app/_store/store";
+import TextQuestion from "@/app/survey-content/_component/TextQuestion";
 
 export default function Page() {
   const router = useRouter();
@@ -86,7 +87,12 @@ export default function Page() {
       answers[currentQuestion.questionId] ||
       (currentQuestion.type === "multiple" ? [] : null);
 
-    return (
+    return currentQuestion.type === "text" ? (
+      <TextQuestion
+        currentIndex={currentIndex}
+        question={currentQuestion.content}
+      />
+    ) : (
       <QuestionRender
         currentIndex={currentIndex}
         question={currentQuestion}

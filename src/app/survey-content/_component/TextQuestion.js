@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Card, Form, Input } from "antd";
 const { TextArea } = Input;
 
-export default function TextQuestion({ question }) {
+export default function TextQuestion({ question, currentIndex }) {
   const [textValue, setTextValue] = useState("");
 
   const onChange = (e) => {
@@ -11,7 +11,14 @@ export default function TextQuestion({ question }) {
   };
   return (
     <div className="Survey-Page pt-20">
-      <Card title={question} className="!w-[800px] mx-auto">
+      <Card
+        title={
+          <div className="question-title">
+            {currentIndex + 1}. {question}
+          </div>
+        }
+        className="!w-[800px] mx-auto"
+      >
         <Form>
           <Form.Item>
             <TextArea
