@@ -1,6 +1,6 @@
-import { Card, Form, Button, Radio, Space } from "antd";
+import { Card, Form, Radio, Space } from "antd";
 import { CheckOutlined } from "@ant-design/icons";
-import React, { useEffect } from "react";
+import React from "react";
 
 export default function SingleChoiceQuestion({
   currentIndex,
@@ -18,12 +18,11 @@ export default function SingleChoiceQuestion({
             {currentIndex + 1}. {question}
           </div>
         }
-        className="question-card"
-        size="large"
-        style={{ overflow: "visible", classNames: "" }}
+        className="responsive-card"
+        style={{ overflow: "visible" }}
       >
         <Form
-          style={{ overflow: "visible", size: "large" }}
+          style={{ overflow: "visible" }}
           className="xl:!w-[1280px] lg:!w-[800px]"
         >
           <Form.Item>
@@ -51,18 +50,45 @@ export default function SingleChoiceQuestion({
       </Card>
 
       <style jsx>{`
+        .responsive-card {
+          width: 100%;
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 16px;
+          border-radius: 8px;
+        }
         .question-title {
           word-break: break-word;
           white-space: normal;
+          font-size: 2rem;
+        } /* 响应式调整 */
+        @media (max-width: 1280px) {
+          .responsive-card {
+            max-width: 1000px;
+            padding: 10px;
+            font-size: 16px;
+          }
+          .question-title {
+            font-size: 1.2rem;
+          }
         }
-        .question-card {
-          width: 100%;
-          max-width: 1000px;
-          width: 800px;
-          margin: 0 auto;
+        @media (max-width: 768px) {
+          .responsive-card {
+            max-width: 300px;
+            padding: 4px;
+          }
+          .question-title {
+            font-size: 1rem;
+          }
         }
-        .ant-radio-wrapper {
-          overflow: visible;
+        @media (max-width: 480px) {
+          .responsive-card {
+            max-width: 100%;
+            padding: 2px;
+          }
+          .question-title {
+            font-size: 0.9rem;
+          }
         }
       `}</style>
     </div>
